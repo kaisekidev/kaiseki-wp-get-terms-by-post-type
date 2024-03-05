@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Kaiseki\WordPress\GetTermsByPostType;
 
-use Kaiseki\WordPress\Hook\HookCallbackProviderInterface;
+use Kaiseki\WordPress\Hook\HookProviderInterface;
 
+use function add_filter;
 use function implode;
 use function is_array;
 use function is_string;
 use function str_replace;
 
-final class HookRegistry implements HookCallbackProviderInterface
+final class HookRegistry implements HookProviderInterface
 {
-    public function registerHookCallbacks(): void
+    public function addHooks(): void
     {
         add_filter('terms_clauses', [$this, 'filterTermsClauses'], 10, 3);
     }
@@ -78,6 +79,7 @@ final class HookRegistry implements HookCallbackProviderInterface
         } elseif (is_string($arg)) {
             $entries[] = "'" . $arg . "'";
         }
+
         return $entries;
     }
 }
