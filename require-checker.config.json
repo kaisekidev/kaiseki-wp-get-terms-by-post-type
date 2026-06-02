@@ -3,7 +3,8 @@
         "null", "true", "false",
         "static", "self", "parent",
         "array", "string", "int", "float", "bool", "iterable", "callable", "void", "object", "mixed",
-        "add_filter"
+        "add_filter",
+        "wpdb"
     ],
     "php-core-extensions" : [
         "Core",
