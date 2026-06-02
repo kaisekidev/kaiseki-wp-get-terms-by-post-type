@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kaiseki\WordPress\GetTermsByPostType;
 
 use Kaiseki\WordPress\Hook\HookProviderInterface;
+use wpdb;
 
 use function add_filter;
 use function implode;
@@ -28,25 +29,24 @@ final class HookRegistry implements HookProviderInterface
      */
     public function filterTermsClauses(array $clauses, array $taxonomies, array $args): array
     {
-        if (
-            /** @phpstan-ignore-next-line */
-            empty($args['post_type'])
-            || (
-                isset($args['fields'])
-                && $args['fields'] === 'count'
-            )
-        ) {
+        if (isset($args['fields']) && $args['fields'] === 'count') {
             return $clauses;
         }
 
-        /** @phpstan-ignore-next-line */
-        if (empty($args['post_status'])) {
-            $args['post_status'] = ['publish'];
+        $postTypes = $this->getEntries($args['post_type'] ?? null);
+        if ($postTypes === []) {
+            return $clauses;
         }
 
         global $wpdb;
-        $postTypes = $this->getEntries($args['post_type']);
-        $postStatus = $this->getEntries($args['post_status']);
+        if (!$wpdb instanceof wpdb) {
+            return $clauses;
+        }
+
+        $postStatus = $this->getEntries($args['post_status'] ?? null);
+        if ($postStatus === []) {
+            $postStatus = ["'publish'"];
+        }
 
         $clauses['fields'] = 'DISTINCT ' . str_replace(
             'tt.*',
@@ -74,7 +74,9 @@ final class HookRegistry implements HookProviderInterface
         $entries = [];
         if (is_array($arg)) {
             foreach ($arg as $entry) {
-                $entries[] = "'" . $entry . "'";
+                if (is_string($entry)) {
+                    $entries[] = "'" . $entry . "'";
+                }
             }
         } elseif (is_string($arg)) {
             $entries[] = "'" . $arg . "'";
